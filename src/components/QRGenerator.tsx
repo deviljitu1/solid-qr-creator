@@ -30,8 +30,8 @@ const QRGenerator = () => {
     const ctx = canvas.getContext("2d");
     const img = new Image();
 
-    // Use 4x resolution for high quality output
-    const highResSize = size * 4;
+    // Use 8x resolution for ultra high quality output
+    const highResSize = size * 8;
     canvas.width = highResSize;
     canvas.height = highResSize;
 
