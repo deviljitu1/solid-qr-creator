@@ -4,13 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download, Sparkles } from "lucide-react";
+import { Download, Sparkles, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 
 const QRGenerator = () => {
   const [value, setValue] = useState("");
   const [size, setSize] = useState(256);
   const [generatedValue, setGeneratedValue] = useState("");
+  const [logoImage, setLogoImage] = useState<string | null>(null);
+  const [logoSize, setLogoSize] = useState(50);
 
   const handleGenerate = () => {
     if (!value.trim()) {
@@ -21,6 +23,22 @@ const QRGenerator = () => {
     toast.success("QR Code generated!");
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Image size should be less than 5MB");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setLogoImage(event.target?.result as string);
+        toast.success("Image uploaded successfully!");
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleDownload = () => {
     const svg = document.getElementById("qr-code");
     if (!svg) return;
@@ -28,29 +46,55 @@ const QRGenerator = () => {
     const svgData = new XMLSerializer().serializeToString(svg);
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
-    const img = new Image();
+    const qrImg = new Image();
 
     // Use 8x resolution for ultra high quality output
     const highResSize = size * 8;
     canvas.width = highResSize;
     canvas.height = highResSize;
 
-    img.onload = () => {
+    qrImg.onload = () => {
+      if (!ctx) return;
+      
       // Fill with white background
-      if (ctx) {
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, highResSize, highResSize);
-        ctx.drawImage(img, 0, 0, highResSize, highResSize);
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, highResSize, highResSize);
+      ctx.drawImage(qrImg, 0, 0, highResSize, highResSize);
+
+      // If logo is present, draw it in the center
+      if (logoImage) {
+        const logoImg = new Image();
+        logoImg.onload = () => {
+          const logoSizeScaled = (highResSize * logoSize) / 100;
+          const logoX = (highResSize - logoSizeScaled) / 2;
+          const logoY = (highResSize - logoSizeScaled) / 2;
+          
+          // Draw white background for logo
+          ctx.fillStyle = 'white';
+          ctx.fillRect(logoX - 10, logoY - 10, logoSizeScaled + 20, logoSizeScaled + 20);
+          
+          // Draw logo
+          ctx.drawImage(logoImg, logoX, logoY, logoSizeScaled, logoSizeScaled);
+          
+          const pngFile = canvas.toDataURL("image/png", 1.0);
+          const downloadLink = document.createElement("a");
+          downloadLink.download = "qrcode-with-logo.png";
+          downloadLink.href = pngFile;
+          downloadLink.click();
+          toast.success("High quality QR Code with logo downloaded!");
+        };
+        logoImg.src = logoImage;
+      } else {
+        const pngFile = canvas.toDataURL("image/png", 1.0);
+        const downloadLink = document.createElement("a");
+        downloadLink.download = "qrcode-high-quality.png";
+        downloadLink.href = pngFile;
+        downloadLink.click();
+        toast.success("High quality QR Code downloaded!");
       }
-      const pngFile = canvas.toDataURL("image/png", 1.0);
-      const downloadLink = document.createElement("a");
-      downloadLink.download = "qrcode-high-quality.png";
-      downloadLink.href = pngFile;
-      downloadLink.click();
-      toast.success("High quality QR Code downloaded!");
     };
 
-    img.src = "data:image/svg+xml;base64," + btoa(svgData);
+    qrImg.src = "data:image/svg+xml;base64," + btoa(svgData);
   };
 
   return (
@@ -105,6 +149,58 @@ const QRGenerator = () => {
                 </div>
               </div>
 
+              <div className="space-y-3 pt-2 border-t border-border/50">
+                <Label className="text-base font-semibold">Custom Logo (Optional)</Label>
+                <div className="space-y-3">
+                  {logoImage ? (
+                    <div className="relative">
+                      <div className="flex items-center gap-3 p-3 bg-accent/10 rounded-lg border border-accent/20">
+                        <img src={logoImage} alt="Logo preview" className="w-16 h-16 object-cover rounded-md" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">Logo uploaded</p>
+                          <p className="text-xs text-muted-foreground">Will appear in QR center</p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setLogoImage(null)}
+                          className="hover:bg-destructive/10 hover:text-destructive"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      <div className="mt-3 space-y-2">
+                        <Label htmlFor="logo-size" className="text-sm">Logo Size: {logoSize}%</Label>
+                        <Input
+                          id="logo-size"
+                          type="range"
+                          min="20"
+                          max="80"
+                          step="5"
+                          value={logoSize}
+                          onChange={(e) => setLogoSize(Number(e.target.value))}
+                          className="cursor-pointer h-2"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <label htmlFor="logo-upload" className="cursor-pointer">
+                      <div className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-all duration-300">
+                        <Upload className="w-5 h-5 text-muted-foreground" />
+                        <span className="text-sm font-medium text-muted-foreground">Upload your logo</span>
+                      </div>
+                      <Input
+                        id="logo-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+
               <Button
                 onClick={handleGenerate}
                 className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
@@ -127,13 +223,28 @@ const QRGenerator = () => {
                   <div className="relative">
                     <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent blur-xl opacity-20 rounded-2xl"></div>
                     <div className="relative bg-white p-6 sm:p-8 rounded-2xl shadow-2xl border-4 border-primary/30">
-                      <QRCode
-                        id="qr-code"
-                        value={generatedValue}
-                        size={Math.min(size, 256)}
-                        level="H"
-                        className="transition-all duration-300"
-                      />
+                      <div className="relative">
+                        <QRCode
+                          id="qr-code"
+                          value={generatedValue}
+                          size={Math.min(size, 256)}
+                          level="H"
+                          className="transition-all duration-300"
+                        />
+                        {logoImage && (
+                          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-1 rounded-md shadow-lg">
+                            <img 
+                              src={logoImage} 
+                              alt="Logo" 
+                              className="object-cover rounded"
+                              style={{ 
+                                width: `${Math.min(size, 256) * logoSize / 100}px`, 
+                                height: `${Math.min(size, 256) * logoSize / 100}px` 
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <Button
@@ -142,7 +253,7 @@ const QRGenerator = () => {
                     className="w-full h-12 text-base font-semibold border-2 hover:bg-accent hover:text-accent-foreground transition-all duration-300"
                   >
                     <Download className="w-5 h-5 mr-2" />
-                    Download PNG
+                    Download {logoImage ? "QR with Logo" : "PNG"}
                   </Button>
                 </div>
               ) : (
