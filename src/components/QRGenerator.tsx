@@ -47,40 +47,41 @@ const QRGenerator = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5 flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-4">
-            <Sparkles className="w-8 h-8 text-primary" />
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              QR Code Generator
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/10 flex items-center justify-center p-4 sm:p-6">
+      <div className="w-full max-w-6xl">
+        <div className="text-center mb-8 sm:mb-12 animate-fade-in">
+          <div className="inline-flex items-center gap-3 mb-4">
+            <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-primary animate-pulse" />
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+              Himanshu QR Code Generator
             </h1>
           </div>
-          <p className="text-muted-foreground text-lg">
-            Create beautiful QR codes instantly for any text or URL
+          <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto">
+            Create beautiful, professional QR codes instantly for any text or URL
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          <Card className="shadow-lg border-border/50 backdrop-blur">
-            <CardHeader>
-              <CardTitle>Input</CardTitle>
+        <div className="grid lg:grid-cols-2 gap-6 sm:gap-8">
+          <Card className="shadow-2xl border-2 border-primary/20 backdrop-blur-sm hover:shadow-primary/10 transition-all duration-300">
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-2xl">Input Details</CardTitle>
               <CardDescription>Enter your text or URL to generate a QR code</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="qr-input">Text or URL</Label>
+                <Label htmlFor="qr-input" className="text-base font-semibold">Text or URL</Label>
                 <Input
                   id="qr-input"
                   placeholder="https://example.com or any text"
                   value={value}
                   onChange={(e) => setValue(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && handleGenerate()}
+                  className="h-12 text-base"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="qr-size">Size: {size}px</Label>
+              <div className="space-y-3">
+                <Label htmlFor="qr-size" className="text-base font-semibold">Size: {size}px</Label>
                 <Input
                   id="qr-size"
                   type="range"
@@ -89,52 +90,60 @@ const QRGenerator = () => {
                   step="64"
                   value={size}
                   onChange={(e) => setSize(Number(e.target.value))}
-                  className="cursor-pointer"
+                  className="cursor-pointer h-3"
                 />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>Small</span>
+                  <span>Large</span>
+                </div>
               </div>
 
               <Button
                 onClick={handleGenerate}
-                className="w-full"
+                className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                 size="lg"
               >
+                <Sparkles className="w-5 h-5 mr-2" />
                 Generate QR Code
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="shadow-lg border-border/50 backdrop-blur">
-            <CardHeader>
-              <CardTitle>Preview</CardTitle>
+          <Card className="shadow-2xl border-2 border-accent/20 backdrop-blur-sm hover:shadow-accent/10 transition-all duration-300">
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-2xl">QR Code Preview</CardTitle>
               <CardDescription>Your generated QR code will appear here</CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col items-center justify-center min-h-[300px]">
+            <CardContent className="flex flex-col items-center justify-center min-h-[350px] sm:min-h-[400px]">
               {generatedValue ? (
-                <div className="space-y-4 flex flex-col items-center">
-                  <div className="bg-white p-4 rounded-lg shadow-inner">
-                    <QRCode
-                      id="qr-code"
-                      value={generatedValue}
-                      size={Math.min(size, 256)}
-                      level="H"
-                      className="transition-all duration-300"
-                    />
+                <div className="space-y-6 flex flex-col items-center w-full animate-scale-in">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent blur-xl opacity-20 rounded-2xl"></div>
+                    <div className="relative bg-white p-6 sm:p-8 rounded-2xl shadow-2xl border-4 border-primary/30">
+                      <QRCode
+                        id="qr-code"
+                        value={generatedValue}
+                        size={Math.min(size, 256)}
+                        level="H"
+                        className="transition-all duration-300"
+                      />
+                    </div>
                   </div>
                   <Button
                     onClick={handleDownload}
                     variant="outline"
-                    className="w-full"
+                    className="w-full h-12 text-base font-semibold border-2 hover:bg-accent hover:text-accent-foreground transition-all duration-300"
                   >
-                    <Download className="w-4 h-4 mr-2" />
+                    <Download className="w-5 h-5 mr-2" />
                     Download PNG
                   </Button>
                 </div>
               ) : (
-                <div className="text-center text-muted-foreground">
-                  <div className="w-32 h-32 border-2 border-dashed border-muted rounded-lg flex items-center justify-center mb-4 mx-auto">
-                    <Sparkles className="w-12 h-12 opacity-30" />
+                <div className="text-center text-muted-foreground animate-fade-in">
+                  <div className="w-32 h-32 sm:w-40 sm:h-40 border-4 border-dashed border-muted rounded-2xl flex items-center justify-center mb-6 mx-auto bg-muted/5">
+                    <Sparkles className="w-16 h-16 sm:w-20 sm:h-20 opacity-20" />
                   </div>
-                  <p>Enter text and click generate to create your QR code</p>
+                  <p className="text-base sm:text-lg font-medium">Enter text and click generate to create your QR code</p>
                 </div>
               )}
             </CardContent>
