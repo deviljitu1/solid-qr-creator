@@ -30,17 +30,24 @@ const QRGenerator = () => {
     const ctx = canvas.getContext("2d");
     const img = new Image();
 
-    canvas.width = size;
-    canvas.height = size;
+    // Use 4x resolution for high quality output
+    const highResSize = size * 4;
+    canvas.width = highResSize;
+    canvas.height = highResSize;
 
     img.onload = () => {
-      ctx?.drawImage(img, 0, 0);
-      const pngFile = canvas.toDataURL("image/png");
+      // Fill with white background
+      if (ctx) {
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, highResSize, highResSize);
+        ctx.drawImage(img, 0, 0, highResSize, highResSize);
+      }
+      const pngFile = canvas.toDataURL("image/png", 1.0);
       const downloadLink = document.createElement("a");
-      downloadLink.download = "qrcode.png";
+      downloadLink.download = "qrcode-high-quality.png";
       downloadLink.href = pngFile;
       downloadLink.click();
-      toast.success("QR Code downloaded!");
+      toast.success("High quality QR Code downloaded!");
     };
 
     img.src = "data:image/svg+xml;base64," + btoa(svgData);
